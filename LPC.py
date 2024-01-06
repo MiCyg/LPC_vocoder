@@ -21,20 +21,6 @@ def create_overlapping_blocks(x, w, R = 0.5):
 
     return B
 
-def add_overlapping_blocks(B, w, R = 0.5):
-    [count, nw] = B.shape
-    step = floor(nw * R)
-
-    n = int((count-1) * step + nw)
-
-    x = np.zeros((n, ))
-
-    for i in range(count):
-        offset = int(i * step)
-        x[offset : nw + offset] += B[i, :]
-
-    return x
-
 def make_matrix_X(x, p):
     n = len(x)
     # [x_n, ..., x_1, 0, ..., 0]
@@ -46,7 +32,7 @@ def make_matrix_X(x, p):
         X[i, :] = xz[offset : offset + p]
     return X
 
-def solve_lpc(x, p, ii):
+def solve_lpc(x, p):
     b = x[1:]
 
     X = make_matrix_X(x, p)
@@ -66,12 +52,26 @@ def lpc_encode(x, p, w):
     G = np.zeros((1, nb))
 
     for i in range(nb):
-        [a, g] = solve_lpc(B[i, :], p, i)
+        [a, g] = solve_lpc(B[i, :], p)
 
         A[:, i] = a
         G[:, i] = g
 
     return [A, G]
+
+def add_overlapping_blocks(B, w, R = 0.5):
+    [count, nw] = B.shape
+    step = floor(nw * R)
+
+    n = int((count-1) * step + nw)
+
+    x = np.zeros((n, ))
+
+    for i in range(count):
+        offset = int(i * step)
+        x[offset : nw + offset] += B[i, :]
+
+    return x
 
 def run_source_filter(a, g, block_size):
     src = np.sqrt(g)*randn(block_size, 1) # noise
